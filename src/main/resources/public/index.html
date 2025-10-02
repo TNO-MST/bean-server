@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+	<style>
+	table, th, td {
+		border:1px solid black;
+	}
+	</style>
+
+    <body>
+        <h1>TNO Bean Server</h1>
+
+        <form method="post" action="/upload" enctype="multipart/form-data">
+			<div>
+				Modules for expansion:
+				<table style="width:50%">
+					<tr><td>Modules (multiple)</td><td><input type="file" name="foms" multiple></td></tr>
+					<tr><td>MIM (single)</td><td><input type="file" name="mim"></td></tr>
+				</table>
+ 			</div>
+            <br>
+            <div>
+				Modules for reference:
+				<table style="width:50%">
+					<tr><td>Modules (multiple)</td><td><input type="file" name="reffoms" multiple></td></tr>
+				</table>
+            </div>
+            <br>
+            <div>
+                <input type="checkbox" id="useFQnames" name="useFQnames" value="useFQnames">
+                <label for="useFQnames"> Use fully qualified Java class name based on OMT class name</label>
+				<br>
+                <input type="checkbox" id="useList" name="useList" value="useList">
+                <label for="useList"> Use Java List type for OMT array datatype</label>
+				<br>
+                <input type="checkbox" id="usePublicModifier" name="usePublicModifier" value="usePublicModifier">
+                <label for="usePublicModifier"> Use Java public modifier for class properties</label>
+				<br>
+			    <input type="checkbox" id="useUnboxedType" name="useUnboxedType" value="useUnboxedType">
+                <label for="useUnboxedType"> Use Java unboxed datatype for class properties</label>
+				<br>
+			</div>
+            <br>
+            <div>
+                <input type="text" id="groupId" name="groupId" value="nl.tno" size="50" required>
+                <label for="groupId"> GroupId to prefix the Java package name</label>
+            </div>
+            <br>
+            <div>
+                <input type="text" id="regexList" name="regexList" size="50" 
+                       value=".*rpr.?fom.*=rpr, .*netn.?base.*=netn.base, .*netn.?etr.*=netn.etr, .*netn.?org.*=netn.org, .*netn.?physical.*=netn.physical, .*netn.?ais.*=netn.ais, .*cyberdem.*=cyber, .*netn-merged-full.?xml=netn4, .*netn.?mim.?xml=mim4, .*recorder.*=recorder">
+                <label for="regexList"> Comma-separated list of regex to package name mapping: [regex=name{,regex=name}*]</label>
+            </div>
+            <br>
+            <div>
+                <input type="checkbox" id="createJar" name="createJar" value="createJar">
+                <label for="createJar"> Create JAR</label><br>
+            </div>
+            <br>
+            <div><button>Submit</button></div>
+        </form>
+
+    </body>
+</html>

@@ -1,0 +1,6 @@
+target/
+work/
+nb-configuration.xml
+.settings/
+.classpath
+.project

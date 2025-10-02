@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<objectModel xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd" xmlns="http://standards.ieee.org/IEEE1516-2010" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelIdentification>
+        <name>Message Module</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2017-12-14</modificationDate>
+        <securityClassification>unclassified</securityClassification>
+        <purpose>Send a message between federates</purpose>
+        <applicationDomain>Simulation</applicationDomain>
+        <description>Example</description>
+        <useLimitation></useLimitation>
+        <useHistory>v1.0 - First Version</useHistory>
+        <poc>
+            <pocType>Primary author</pocType>
+            <pocName>Tom van den Berg</pocName>
+            <pocOrg>TNO</pocOrg>
+            <pocTelephone> </pocTelephone>
+            <pocEmail> </pocEmail>
+        </poc>
+        <reference>
+            <type>Text Document</type>
+            <identification></identification>
+        </reference>
+        <other></other>
+    </modelIdentification>
+    <objects>
+	    <objectClass>
+            <name>HLAobjectRoot</name>
+        </objectClass>
+    </objects>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>Message</name>
+                <sharing>PublishSubscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>TimeStamp</order>
+                <semantics>The message</semantics>
+                <parameter>
+                    <name>Subject</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <semantics>The message subject.</semantics>
+                </parameter>
+                <parameter>
+                    <name>Contents</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <semantics>The message contents.</semantics>
+                </parameter>
+            </interactionClass>
+        </interactionClass>
+    </interactions>
+    <switches>
+        <autoProvide isEnabled="false"/>
+        <conveyRegionDesignatorSets isEnabled="false"/>
+        <conveyProducingFederate isEnabled="false"/>
+        <attributeScopeAdvisory isEnabled="false"/>
+        <attributeRelevanceAdvisory isEnabled="false"/>
+        <objectClassRelevanceAdvisory isEnabled="false"/>
+        <interactionRelevanceAdvisory isEnabled="false"/>
+        <serviceReporting isEnabled="false"/>
+        <exceptionReporting isEnabled="false"/>
+        <delaySubscriptionEvaluation isEnabled="false"/>
+        <automaticResignAction resignAction="CancelThenDeleteThenDivest"/>
+    </switches>
+    <dataTypes>
+        <basicDataRepresentations/>
+        <simpleDataTypes />
+        <enumeratedDataTypes />
+        <arrayDataTypes />
+        <fixedRecordDataTypes />
+        <variantRecordDataTypes />
+    </dataTypes>
+    <notes/>
+</objectModel>

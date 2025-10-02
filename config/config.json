@@ -1,0 +1,23 @@
+{
+    "useList": false,
+    "useNoNotice": false,
+    "useBoxedType": false,
+    "useUuidType": false,
+    "useClassForEnum": false,
+    "defaultPackageNames": {
+        ".*rpr.?fom.*": "rpr",
+        ".*netn.?org.*": "netn.org",
+        ".*netn.?ais.*": "netn.ais",
+        ".*netn.?base.*": "netn.base",
+        ".*netn.?etr.*": "netn.etr",
+        ".*netn.?physical.*": "netn.physical"
+    },
+    "groupId": "nl.tno",
+    "modules": [
+        "file:config/foms/RPR_FOM_v2.0_1516-2010.xml",
+        "file:config/foms/NETN-Base.xml",
+        "file:config/foms/NETN-AIS.xml",
+        "file:config/foms/NETN-ORG.xml",
+        "file:config/foms/NETN-Physical.xml",
+        "file:config/foms/NETN-ETR.xml"]
+}

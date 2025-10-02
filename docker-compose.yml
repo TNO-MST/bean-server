@@ -1,0 +1,7 @@
+services:
+  beanserver:
+    build:
+      context: .
+      dockerfile: docker/context/Dockerfile
+    ports:
+      - "7000:7000"

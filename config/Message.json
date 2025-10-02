@@ -1,0 +1,4 @@
+{
+	"modules" : [ "file:config/foms/Message.xml" ],
+	"packageNames" : [ "messagefom" ]
+}

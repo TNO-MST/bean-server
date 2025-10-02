@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>nl.tno</groupId>
+	<artifactId>beanserver</artifactId>
+	<version>0.0.0-git</version>
+	<packaging>jar</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.release>21</maven.compiler.release>
+	</properties>
+
+	<dependencies>
+		<!-- Bean Generator dependencies -->
+		<dependency>
+			<groupId>nl.tno</groupId>
+			<artifactId>omt</artifactId>
+			<version>1.0.0</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse</groupId>
+			<artifactId>yasson</artifactId>
+			<version>3.0.4</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>com.google.googlejavaformat</groupId>
+			<artifactId>google-java-format</artifactId>
+			<version>1.28.0</version>
+			<type>jar</type>
+		</dependency>
+		<!-- Bean Client and Server dependencies -->
+		<dependency>
+			<groupId>io.javalin</groupId>
+			<artifactId>javalin</artifactId>
+			<version>6.7.0</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>2.0.17</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.14</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.5.14</version>
+			<type>jar</type>
+		</dependency>
+
+		<!-- TEST dependencies -->
+
+		<!-- org.junit.jupiter.api provider, includes api -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.13.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>nl.tno</groupId>
+			<artifactId>oorti</artifactId>
+			<version>1.0.0</version>
+			<scope>test</scope>
+			<type>jar</type>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<!-- use this plugin to execute the app via maven -->
+				<!-- add-exports arguments are added in this plugin for Java module access -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.5.1</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<executable>java</executable>
+					<mainClass>nl.tno.beanserver.BeanServer</mainClass>
+					<arguments>
+						<argument>-classpath</argument>
+						<argument>"target/beanserver-${project.version}.jar;target/dependency/*"</argument>
+						<!-- the following module exports are needed for the google-java-formatter -->
+						<!-- these arguments have to be provided on VM start to have effect, 
+						 hence use mvn exec:exec to execute -->
+						<argument>--add-exports</argument>
+						<argument>jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED</argument>
+						<argument>--add-exports</argument>
+						<argument>jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</argument>
+						<argument>--add-exports</argument>
+						<argument>jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</argument>
+						<argument>--add-exports</argument>
+						<argument>jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</argument>
+						<argument>--add-exports</argument>
+						<argument>jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</argument>
+						<!-- and finally add the main entrypoint -->
+						<argument>nl.tno.beanserver.BeanServer</argument>
+					</arguments>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.14.0</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.5.3</version>
+				<configuration>
+					<!-- This will make sure to spawn a fresh jvm for each unit test, 
+					in order to have a clean cache for class loading. -->
+					<forkCount>1</forkCount>
+					<reuseForks>false</reuseForks>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.8.1</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeScope>runtime</includeScope>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.6.0</version>
+				<configuration>
+					<transformers>
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+							<mainClass>nl.tno.beanserver.BeanServer</mainClass>
+						</transformer>
+					</transformers>
+					<createDependencyReducedPom>false</createDependencyReducedPom>
+					<minimizeJar>false</minimizeJar>
+					<shadedArtifactAttached>true</shadedArtifactAttached>
+					<entryPoints>
+						<entryPoint>nl.tno.beanserver.BeanServer</entryPoint>
+					</entryPoints>
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<!-- Remove all existing JAR signatures and metadata from dependencies -->
+							<excludes>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+								<exclude>META-INF/*.MF</exclude>
+								<exclude>META-INF/*.md</exclude>
+								<exclude>META-INF/NOTICE*</exclude>
+								<exclude>META-INF/LICENSE*</exclude>
+								<exclude>META-INF/AL2.0*</exclude>
+								<exclude>META-INF/LGPL*</exclude>
+								<exclude>META-INF/DEPENDENCIES*</exclude>
+							</excludes>
+						</filter>
+					</filters>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+</project>
