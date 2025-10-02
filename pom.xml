@@ -13,6 +13,32 @@
 		<maven.compiler.release>21</maven.compiler.release>
 	</properties>
 
+	<name>bean-server</name>
+	<description>Generate Java Beans from HLA FOM modules, and dynamically compile these Java Beans into executable code.</description>
+	<url>https://github.com/TNO-MST/bean-server</url>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>TNO Mission Simulation and Training</name>
+			<email>noreply@tno-mst.github.io</email>
+			<organization>TNO</organization>
+			<organizationUrl>https://tno-mst.github.io</organizationUrl>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git://github.com/TNO-MST/bean-server.git</connection>
+		<developerConnection>scm:git:ssh://github.com:TNO-MST/bean-server.git</developerConnection>
+		<url>https://github.com/TNO-MST/bean-server/tree/main</url>
+	</scm>
+
 	<dependencies>
 		<!-- Bean Generator dependencies -->
 		<dependency>
