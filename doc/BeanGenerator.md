@@ -2,7 +2,7 @@
 Functionality for Bean generation is included in the `BeanGenerator` class.
 
 The generation of Java Beans from HLA FOM modues is relatively straight forward and the design approach is:
-- use straighforward functions for code expansion, rather then additional tools such as code templates;
+- use straightforward functions for code expansion, rather then additional tools such as code templates;
 - keep all the functionality together in a single `BeanGenerator` class;
 - allow the class to be extended with additional functionality.
 

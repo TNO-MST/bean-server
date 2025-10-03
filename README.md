@@ -1,6 +1,6 @@
 # Java Bean Server
 
-This project provides functionality to generate Java Beans from HLA FOM modules, and to dynamically compile these Java Beans into executable code. The Java Beans can be processed by the Object Oriented RTI (OORTI).
+This project provides functionality to generate Java Beans from HLA FOM modules, and to dynamically compile these Java Beans into executable code. The Java Beans can be processed by the [Object Oriented RTI (OORTI)](https://github.com/TNO-MST/object-oriented-rti).
 
 The typical workflow is illustrated in the following figure.
 
