@@ -1325,12 +1325,12 @@ public class BeanGenerator {
   private void buildGettersAndSetters(
       StringBuilder sb, List<String> memberTypeList, List<String> memberNameList) {
     for (int i = 0; i < memberTypeList.size(); i++) {
-      String name = OmtJavaMapping.toJavaName(memberNameList.get(i));
+      String javaFieldName = memberNameList.get(i);
 
       sb.append("\tpublic ")
           .append(memberTypeList.get(i))
           .append(" ")
-          .append(OmtJavaMapping.toJavaGetterName(name))
+          .append(OmtJavaMapping.toJavaGetterName(javaFieldName))
           .append("() {")
           .append("\n");
       sb.append("\t\treturn this.").append(memberNameList.get(i)).append(";").append("\n");
@@ -1338,7 +1338,7 @@ public class BeanGenerator {
       sb.append("\n");
 
       sb.append("\tpublic void ")
-          .append(OmtJavaMapping.toJavaSetterName(name))
+          .append(OmtJavaMapping.toJavaSetterName(javaFieldName))
           .append("(")
           .append(memberTypeList.get(i))
           .append(" ")
