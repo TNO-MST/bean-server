@@ -300,7 +300,8 @@ public class BeanServer {
                     protected void outputJson(String infoName, String jsonString) throws Exception {
                       this.createFile(
                           sourceDir + DIR_SEPARATOR + infoName + JSON_FILE_SUFFIX,
-                          new StringBuilder(jsonString));
+                          new StringBuilder(jsonString),
+                          false);
                     }
                   };
 

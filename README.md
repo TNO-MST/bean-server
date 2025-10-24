@@ -60,6 +60,7 @@ The following configuration options are available to control the Java Bean expan
 - Use Java List type for OMT array datatype
 - Use Java public modifier for class properties
 - Use boxed or unboxed datatypes for attribues or parameters
+- Export a list of the expanded objects, interactions and datatypes in JSON format
 
 In addition a group ID can be set that will be added to the Java package names.
 

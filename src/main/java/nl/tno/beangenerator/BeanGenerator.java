@@ -104,6 +104,7 @@ public class BeanGenerator {
   // JSON array of FOM Object and Interaction information.
   private JsonArrayBuilder jsonObjectList = Json.createArrayBuilder();
   private JsonArrayBuilder jsonInteractionList = Json.createArrayBuilder();
+  private JsonArrayBuilder jsonDatatypeList = Json.createArrayBuilder();
 
   ////////////////////////////////////////////////////////////////////////////
   // Public constructors
@@ -245,15 +246,14 @@ public class BeanGenerator {
       throws Exception {}
 
   /**
-   * Callback for json information file. This method is called when the json array of FOM objects
-   * and interactions has been generated for the module the class is a member of. I.e. the selector
-   * value for the module in the expansion call is true.
+   * Callback for the json overview file. This method is called when the json array of FOM objects,
+   * interactions and datatypes has been generated.
    *
-   * @param infoName File name
+   * @param fileName File name
    * @param jsonString JSON contents
    * @throws Exception
    */
-  protected void outputJson(String infoName, String jsonString) throws Exception {}
+  protected void outputJson(String fileName, String jsonString) throws Exception {}
 
   /**
    * Final callback in the expansion.
@@ -263,6 +263,7 @@ public class BeanGenerator {
   protected void afterOutput() throws Exception {
     this.outputJson("objects", this.jsonObjectList.build().toString());
     this.outputJson("interactions", this.jsonInteractionList.build().toString());
+    this.outputJson("datatypes", this.jsonDatatypeList.build().toString());
   }
 
   ////////////////////////////////////////////////////////////////////////////
@@ -420,28 +421,6 @@ public class BeanGenerator {
               enumeratedData.getName().getValue());
         }
       }
-    }
-  }
-
-  ////////////////////////////////////////////////////////////////////////////
-  // Export Module to JSON
-  ////////////////////////////////////////////////////////////////////////////
-  private void exportModule() throws Exception {
-    //    this.expandPackageInfo();
-    this.exportObjectClasses(this.toJavaObjectPackageName(this.currentPackageName));
-    //    this.expandInteractionClasses(this.toJavaInteractionPackageName(this.currentPackageName));
-    //    this.expandDataTypes();
-  }
-
-  ////////////////////////////////////////////////////////////////////////////
-  // Export Object Classes in the current module
-  ////////////////////////////////////////////////////////////////////////////
-  /** Export the object classes in the current module. */
-  private void exportObjectClasses(String objectPackageName) throws Exception {
-    if (this.currentModule.getObjects() != null
-        && this.currentModule.getObjects().getObjectClass() != null) {
-      ObjectClass root = this.currentModule.getObjects().getObjectClass();
-      this.exportObjectClassInformation(null, null, root, objectPackageName);
     }
   }
 
@@ -976,6 +955,76 @@ public class BeanGenerator {
         sb);
   }
 
+  ////////////////////////////////////////////////////////////////////////////
+  // Export Module to JSON
+  ////////////////////////////////////////////////////////////////////////////
+  private void exportModule() throws Exception {
+    //    this.expandPackageInfo();
+    this.exportObjectClasses(this.toJavaObjectPackageName(this.currentPackageName));
+    this.exportInteractionClasses(this.toJavaInteractionPackageName(this.currentPackageName));
+    this.exportDataTypes();
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Export Object Classes in the current module
+  ////////////////////////////////////////////////////////////////////////////
+  /** Export the object classes in the current module. */
+  private void exportObjectClasses(String objectPackageName) throws Exception {
+    if (this.currentModule.getObjects() != null
+        && this.currentModule.getObjects().getObjectClass() != null) {
+      ObjectClass root = this.currentModule.getObjects().getObjectClass();
+      this.exportObjectClassInformation(null, null, root, objectPackageName);
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Export Interaction Classes in the current module
+  ////////////////////////////////////////////////////////////////////////////
+  /** Expand the interaction classes in the current module. */
+  private void exportInteractionClasses(String interactionPackageName) throws Exception {
+    if (this.currentModule.getInteractions() != null
+        && this.currentModule.getInteractions().getInteractionClass() != null) {
+      InteractionClass root = this.currentModule.getInteractions().getInteractionClass();
+      this.exportInteractionClass(null, null, root, interactionPackageName);
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Export Datatypes
+  ////////////////////////////////////////////////////////////////////////////
+  /** Export the data types in the current OMT module. */
+  private void exportDataTypes() throws Exception {
+    if (this.currentModule.getDataTypes() != null) {
+
+      FixedRecordDataTypesType fixedRecordDataTypesType =
+          this.currentModule.getDataTypes().getFixedRecordDataTypes();
+      if (fixedRecordDataTypesType != null) {
+        List<FixedRecordData> list = fixedRecordDataTypesType.getFixedRecordData();
+        for (FixedRecordData fixedRecordData : list) {
+          this.exportFixedRecordDataType(fixedRecordData);
+        }
+      }
+
+      VariantRecordDataTypesType variantRecordDataTypesType =
+          this.currentModule.getDataTypes().getVariantRecordDataTypes();
+      if (variantRecordDataTypesType != null) {
+        List<VariantRecordData> list = variantRecordDataTypesType.getVariantRecordData();
+        for (VariantRecordData variantRecordData : list) {
+          this.exportVariantRecordDataType(variantRecordData);
+        }
+      }
+
+      EnumeratedDataTypesType enumeratedDataTypesType =
+          this.currentModule.getDataTypes().getEnumeratedDataTypes();
+      if (enumeratedDataTypesType != null) {
+        List<EnumeratedData> list = enumeratedDataTypesType.getEnumeratedData();
+        for (EnumeratedData enumeratedData : list) {
+          this.exportEnumeratedDataType(enumeratedData);
+        }
+      }
+    }
+  }
+
   /**
    * Export the OMT object class information to JSON.
    *
@@ -1004,44 +1053,190 @@ public class BeanGenerator {
     }
 
     JsonObjectBuilder jb = Json.createObjectBuilder();
-    jb.add("FullyQualifiedName", fqObjectClassName);
-    jb.add("Name", oc.getName().getValue());
+    jb.add("fullyQualifiedName", fqObjectClassName);
+    jb.add("name", oc.getName().getValue());
     if (oc.getSemantics() != null) {
       jb.add("Semantics", oc.getSemantics().getValue());
     }
 
-    // TODO:
-    //    // CLASS MEMBERS
-    //    List<String> memberTypeList = new ArrayList();
-    //    List<String> memberNameList = new ArrayList();
-    //
-    //    for (Attribute attribute : oc.getAttribute()) {
-    //      buildClassMember(
-    //          sb,
-    //          attribute.getName().getValue(),
-    //          attribute.getDataType().getValue(),
-    //          attribute.getSemantics(),
-    //          memberTypeList,
-    //          memberNameList,
-    //          properties.isUseUnboxedType());
-    //      sb.append("\n");
-    //    }
+    // CLASS MEMBERS
+    JsonArrayBuilder members = Json.createArrayBuilder();
+    for (Attribute attribute : oc.getAttribute()) {
+      exportClassMember(
+          members,
+          attribute.getName().getValue(),
+          attribute.getDataType().getValue(),
+          attribute.getSemantics(),
+          properties.isUseUnboxedType());
+    }
+    jb.add("members", members.build());
 
+    // Output the data
     this.jsonObjectList.add(jb.build());
+  }
+
+  /**
+   * Export the provided OMT interaction class information to JSON.
+   *
+   * @param fqParentName: fully qualified name of the parent interaction, or null if there is no
+   *     parent.
+   * @param parent: reference to the parent interaction class, or null if there is no parent.
+   * @param oc: interaction class to be exported.
+   * @throws Exception
+   */
+  private void exportInteractionClass(
+      String fqParentName,
+      InteractionClass parent,
+      InteractionClass ic,
+      String interactionPackageName)
+      throws Exception {
+    String fqInteractionClassName =
+        fqParentName == null
+            ? ic.getName().getValue()
+            : fqParentName + PKG_SEPARATOR + ic.getName().getValue();
+
+    // Recursively expand subclasses.
+    for (InteractionClass subic : ic.getInteractionClass()) {
+      this.exportInteractionClass(fqInteractionClassName, ic, subic, interactionPackageName);
+    }
+
+    // If the class is a scaffolding class then do not expand.
+    if (OmtFunctions.isScaffoldingClass(ic)) {
+      return;
+    }
+
+    JsonObjectBuilder jb = Json.createObjectBuilder();
+    jb.add("fullyQualifiedName", fqInteractionClassName);
+    jb.add("name", ic.getName().getValue());
+    if (ic.getSemantics() != null) {
+      jb.add("semantics", ic.getSemantics().getValue());
+    }
+
+    // MEMBERS
+    JsonArrayBuilder members = Json.createArrayBuilder();
+    for (Parameter p : ic.getParameter()) {
+      exportClassMember(
+          members,
+          p.getName().getValue(),
+          p.getDataType().getValue(),
+          p.getSemantics(),
+          properties.isUseUnboxedType());
+    }
+    jb.add("members", members.build());
+
+    // Output the data
+    this.jsonInteractionList.add(jb.build());
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Export Fixed Record Datatype
+  ////////////////////////////////////////////////////////////////////////////
+  private void exportFixedRecordDataType(FixedRecordData fixedRecordData) throws Exception {
+    JsonObjectBuilder job = Json.createObjectBuilder();
+
+    job.add("semantics", fixedRecordData.getSemantics().getValue());
+    job.add("name", fixedRecordData.getName().getValue());
+
+    // FIELDS
+    JsonArrayBuilder fields = Json.createArrayBuilder();
+    for (Field f : fixedRecordData.getField()) {
+      // Ignore this field if it has a padding type.
+      if (!this.paddingDataTypes.contains(f.getDataType().getValue())) {
+        exportClassMember(
+            fields, f.getName().getValue(), f.getDataType().getValue(), f.getSemantics(), true);
+      }
+    }
+    job.add("fields", fields.build());
+
+    // Output the data.
+    this.jsonDatatypeList.add(job.build());
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Export Variant Record Datatype
+  ////////////////////////////////////////////////////////////////////////////
+  private void exportVariantRecordDataType(VariantRecordData variantRecordData) throws Exception {
+    JsonObjectBuilder job = Json.createObjectBuilder();
+
+    job.add("name", variantRecordData.getName().getValue());
+    if (variantRecordData.getSemantics() != null) {
+      job.add("semantics", variantRecordData.getSemantics().getValue());
+    }
+
+    // FIELDS
+    // Map the field name and datatype name to Java
+    String javaDiscriminantName =
+        OmtJavaMapping.toJavaName(variantRecordData.getDiscriminant().getValue());
+    String javaDatatypeName =
+        OmtJavaMapping.getJavaDatatypeNameForEnumerationType(
+            this.omtModules, variantRecordData.getDataType().getValue(), false);
+
+    job.add("javaDiscriminantName", javaDiscriminantName);
+    job.add("javaDatatypeName", javaDatatypeName);
+
+    JsonArrayBuilder alternatives = Json.createArrayBuilder();
+    for (Alternative f : variantRecordData.getAlternative()) {
+      this.exportClassMember(
+          alternatives, f.getName().getValue(), f.getDataType().getValue(), f.getSemantics(), true);
+    }
+    job.add("alternatives", alternatives.build());
+
+    // Output the data.
+    this.jsonDatatypeList.add(job.build());
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Export Enumerated Datatype
+  ////////////////////////////////////////////////////////////////////////////
+  private void exportEnumeratedDataType(EnumeratedData enumeratedData) throws Exception {
+    JsonObjectBuilder job = Json.createObjectBuilder();
+
+    job.add("name", enumeratedData.getName().getValue());
+    if (enumeratedData.getSemantics() != null) {
+      job.add("semantics", enumeratedData.getSemantics().getValue());
+    }
+    job.add("representation", enumeratedData.getRepresentation().getValue());
+
+    JsonArrayBuilder enumerators = Json.createArrayBuilder();
+    for (Enumerator e : enumeratedData.getEnumerator()) {
+      JsonObjectBuilder enumerator = Json.createObjectBuilder();
+      enumerator.add("name", e.getName().getValue());
+      enumerator.add("value", e.getValue().getFirst().getValue());
+      enumerators.add(enumerator.build());
+    }
+    job.add("enumerators", enumerators.build());
+
+    this.jsonDatatypeList.add(job.build());
   }
 
   ////////////////////////////////////////////////////////////////////////////
   // Create the file
   ////////////////////////////////////////////////////////////////////////////
+
   /**
    * This method creates a source code file. The source code is formatted before being output to the
    * file.
    */
   protected void createFile(String fileName, StringBuilder sb) throws IOException {
+    createFile(fileName, sb, true);
+  }
+
+  /**
+   * This method creates a source code file. The source code is formatted before being output to the
+   * file.
+   */
+  protected void createFile(String fileName, StringBuilder sb, boolean useFormatJava)
+      throws IOException {
+    if (fileName == null || sb == null)
+      throw new IOException("Filename or String contents are null");
     // format the code
     String sourceCode;
     try {
-      sourceCode = new Formatter().formatSource(sb.toString());
+      if (useFormatJava) {
+        sourceCode = new Formatter().formatSource(sb.toString());
+      } else {
+        sourceCode = sb.toString();
+      }
     } catch (FormatterException ex) {
       Logger.getLogger(BeanGenerator.class.getName()).log(Level.SEVERE, null, ex);
       sourceCode = sb.toString();
@@ -1127,6 +1322,54 @@ public class BeanGenerator {
 
     memberTypeList.add(javaDatatypeName);
     memberNameList.add(javaVariableName);
+  }
+
+  private void exportClassMember(
+      JsonArrayBuilder jab,
+      String fieldName,
+      String datatypeName,
+      HLAString semantics,
+      boolean unboxed)
+      throws Exception {
+
+    JsonObjectBuilder job = Json.createObjectBuilder();
+    job.add("fieldName", fieldName);
+    job.add("datatypeName", datatypeName);
+    if (semantics != null) {
+      job.add("semantics", semantics.getValue());
+    }
+
+    int dim = 0;
+    ArrayData arrayData = OmtFunctions.getArrayDataByName(this.omtModules, datatypeName);
+
+    // Drill down the array and count the dimensions.
+    while (arrayData != null) {
+      if (OmtJavaMapping.getJavaDatatypeName(datatypeName) != null) {
+        // If a specific mapping is specified, then break.
+        break;
+      }
+
+      // If a String datatype is met, then break. A String datatype is an array of charachters.
+      if (arrayData.getDataType().getValue().equals(OmtMimConstants.HLAUNICODECHAR)
+          || arrayData.getDataType().getValue().equals(OmtMimConstants.HLAASCIICHAR)) {
+        break;
+      }
+
+      dim++;
+      datatypeName = arrayData.getDataType().getValue();
+      arrayData = OmtFunctions.getArrayDataByName(this.omtModules, datatypeName);
+    }
+
+    // Get the Java data type name, taking into account the expansion properties (list, box type)
+    String javaDatatypeName =
+        OmtJavaMapping.getJavaDatatypeName(
+            this.omtModules, datatypeName, dim, this.properties.isUseList(), !unboxed);
+    String javaVariableName = OmtJavaMapping.toJavaName(fieldName);
+
+    job.add("javaDatatypeName", javaDatatypeName);
+    job.add("javaVariableName", javaVariableName);
+
+    jab.add(job.build());
   }
 
   /**
