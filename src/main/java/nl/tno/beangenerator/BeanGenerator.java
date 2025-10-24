@@ -2,6 +2,9 @@ package nl.tno.beangenerator;
 
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
+import jakarta.json.Json;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.json.JsonObjectBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -64,6 +67,7 @@ public class BeanGenerator {
   public static final String PKG_SEPARATOR = ".";
   public static final String DIR_SEPARATOR = "/";
   public static final String JAVA_FILE_SUFFIX = ".java";
+  public static final String JSON_FILE_SUFFIX = ".json";
   public static final String HLA_UNKNOWN_ENUM = "HLAunknown";
 
   ////////////////////////////////////////////////////////////////////////////
@@ -96,6 +100,10 @@ public class BeanGenerator {
 
   // Set of array datatypes with a padding encoding, not to be expanded.
   private Set<String> paddingDataTypes;
+
+  // JSON array of FOM Object and Interaction information.
+  private JsonArrayBuilder jsonObjectList = Json.createArrayBuilder();
+  private JsonArrayBuilder jsonInteractionList = Json.createArrayBuilder();
 
   ////////////////////////////////////////////////////////////////////////////
   // Public constructors
@@ -237,11 +245,25 @@ public class BeanGenerator {
       throws Exception {}
 
   /**
+   * Callback for json information file. This method is called when the json array of FOM objects
+   * and interactions has been generated for the module the class is a member of. I.e. the selector
+   * value for the module in the expansion call is true.
+   *
+   * @param infoName File name
+   * @param jsonString JSON contents
+   * @throws Exception
+   */
+  protected void outputJson(String infoName, String jsonString) throws Exception {}
+
+  /**
    * Final callback in the expansion.
    *
    * @throws Exception
    */
-  protected void afterOutput() throws Exception {}
+  protected void afterOutput() throws Exception {
+    this.outputJson("objects", this.jsonObjectList.build().toString());
+    this.outputJson("interactions", this.jsonInteractionList.build().toString());
+  }
 
   ////////////////////////////////////////////////////////////////////////////
   // Main expansion method
@@ -288,6 +310,9 @@ public class BeanGenerator {
 
       if (selectors[i]) {
         this.expandModule();
+        if (properties.isUseJsonExport()) {
+          this.exportModule();
+        }
       } else {
         this.declareModule();
       }
@@ -395,6 +420,28 @@ public class BeanGenerator {
               enumeratedData.getName().getValue());
         }
       }
+    }
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Export Module to JSON
+  ////////////////////////////////////////////////////////////////////////////
+  private void exportModule() throws Exception {
+    //    this.expandPackageInfo();
+    this.exportObjectClasses(this.toJavaObjectPackageName(this.currentPackageName));
+    //    this.expandInteractionClasses(this.toJavaInteractionPackageName(this.currentPackageName));
+    //    this.expandDataTypes();
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Export Object Classes in the current module
+  ////////////////////////////////////////////////////////////////////////////
+  /** Export the object classes in the current module. */
+  private void exportObjectClasses(String objectPackageName) throws Exception {
+    if (this.currentModule.getObjects() != null
+        && this.currentModule.getObjects().getObjectClass() != null) {
+      ObjectClass root = this.currentModule.getObjects().getObjectClass();
+      this.exportObjectClassInformation(null, null, root, objectPackageName);
     }
   }
 
@@ -927,6 +974,60 @@ public class BeanGenerator {
         this.toDatatypePackageName(this.currentPackageName),
         enumeratedData.getName().getValue(),
         sb);
+  }
+
+  /**
+   * Export the OMT object class information to JSON.
+   *
+   * @param fqParentName: fully qualified name of the parent object class, or null if there is no
+   *     parent.
+   * @param parent: reference to the parent object class, or null if there is no parent.
+   * @param oc: object class to be expanded.
+   * @throws Exception
+   */
+  private void exportObjectClassInformation(
+      String fqParentName, ObjectClass parent, ObjectClass oc, String objectPackageName)
+      throws Exception {
+    String fqObjectClassName =
+        fqParentName == null
+            ? oc.getName().getValue()
+            : fqParentName + PKG_SEPARATOR + oc.getName().getValue();
+
+    // Recursively expand subclasses.
+    for (ObjectClass suboc : oc.getObjectClass()) {
+      this.exportObjectClassInformation(fqObjectClassName, oc, suboc, objectPackageName);
+    }
+
+    // If the class is a scaffolding class then do not expand.
+    if (OmtFunctions.isScaffoldingClass(oc)) {
+      return;
+    }
+
+    JsonObjectBuilder jb = Json.createObjectBuilder();
+    jb.add("FullyQualifiedName", fqObjectClassName);
+    jb.add("Name", oc.getName().getValue());
+    if (oc.getSemantics() != null) {
+      jb.add("Semantics", oc.getSemantics().getValue());
+    }
+
+    // TODO:
+    //    // CLASS MEMBERS
+    //    List<String> memberTypeList = new ArrayList();
+    //    List<String> memberNameList = new ArrayList();
+    //
+    //    for (Attribute attribute : oc.getAttribute()) {
+    //      buildClassMember(
+    //          sb,
+    //          attribute.getName().getValue(),
+    //          attribute.getDataType().getValue(),
+    //          attribute.getSemantics(),
+    //          memberTypeList,
+    //          memberNameList,
+    //          properties.isUseUnboxedType());
+    //      sb.append("\n");
+    //    }
+
+    this.jsonObjectList.add(jb.build());
   }
 
   ////////////////////////////////////////////////////////////////////////////

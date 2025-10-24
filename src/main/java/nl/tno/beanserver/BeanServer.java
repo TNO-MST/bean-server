@@ -169,6 +169,7 @@ public class BeanServer {
           properties.setUseList(ctx.formParam("useList") != null);
           properties.setUseUnboxedType(ctx.formParam("useUnboxedType") != null);
           properties.setUsePublicModifier(ctx.formParam("usePublicModifier") != null);
+          properties.setUseJsonExport(ctx.formParam("useJsonExport") != null);
           properties.setGroupId(ctx.formParam("groupId"));
 
           boolean createJar = ctx.formParam("createJar") != null;
@@ -293,6 +294,13 @@ public class BeanServer {
                               + infoName
                               + JAVA_FILE_SUFFIX,
                           sourceCode);
+                    }
+
+                    @Override
+                    protected void outputJson(String infoName, String jsonString) throws Exception {
+                      this.createFile(
+                          sourceDir + DIR_SEPARATOR + infoName + JSON_FILE_SUFFIX,
+                          new StringBuilder(jsonString));
                     }
                   };
 
