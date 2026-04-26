@@ -1,3 +1,7 @@
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/TNO-MST/beanserver/build-publish-jar.yaml?branch=main&label=build&event=push)
+[![Maven Central Version](https://img.shields.io/maven-central/v/nl.tno/beanserver)](https://central.sonatype.com/artifact/nl.tno/beanserver)
+[![javadoc](https://javadoc.io/badge2/nl.tno/bean-plugin/javadoc.svg)](https://javadoc.io/doc/nl.tno/beanserver) 
+
 # Java Bean Server
 
 This project provides functionality to generate Java Beans from HLA FOM modules, and to dynamically compile these Java Beans into executable code. The Java Beans can be processed by the [Object Oriented RTI (OORTI)](https://github.com/TNO-MST/object-oriented-rti).
